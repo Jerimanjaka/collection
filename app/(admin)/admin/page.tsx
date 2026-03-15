@@ -14,9 +14,9 @@ const sections = [
     slots: ["logo"],
   },
   {
-    title: "Hero",
-    description: "Background image for the hero section",
-    slots: ["hero-bg"],
+    title: "Hero Slideshow",
+    description: "Images for the hero slideshow (landscape, high resolution). Upload 2-4 images for the best effect.",
+    slots: ["hero-slide-0", "hero-slide-1", "hero-slide-2", "hero-slide-3"],
   },
   {
     title: "Our Collection",

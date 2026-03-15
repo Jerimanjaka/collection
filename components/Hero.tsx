@@ -1,25 +1,24 @@
-import DynamicImage from "@/components/DynamicImage";
 import Text from "@/components/Text";
+import HeroSlideshow from "@/components/HeroSlideshow";
+import { getImagePath } from "@/lib/image-manifest";
 
 export default async function Hero() {
+  // Fetch all slideshow images
+  const slidePromises = [0, 1, 2, 3].map((i) => getImagePath(`hero-slide-${i}`));
+  const slideResults = await Promise.all(slidePromises);
+  const heroImages = slideResults.filter((url): url is string => url !== null);
+
   return (
     <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-b from-white-nacre to-beige pt-40 lg:pt-48 overflow-hidden">
-      {/* Background hero image */}
+      {/* Background slideshow */}
       <div className="absolute inset-0">
         <div className="absolute inset-0">
           <div className="relative w-full h-full bg-beige">
-            <DynamicImage
-              slot="hero-bg"
-              alt="Premiere Collection hero"
-              className="object-cover"
-              placeholder={
-                <div className="w-full h-full bg-gradient-to-br from-beige-dark/40 via-beige/20 to-champagne-light/10" />
-              }
-            />
+            <HeroSlideshow images={heroImages} />
           </div>
         </div>
         {/* Overlay for text readability */}
-        <div className="absolute inset-0 bg-gradient-to-b from-white-nacre/80 via-white-nacre/60 to-beige/90" />
+        <div className="absolute inset-0 bg-gradient-to-b from-white-nacre/70 via-white-nacre/50 to-beige/80" />
       </div>
 
       {/* Decorative elements */}
@@ -66,7 +65,7 @@ export default async function Hero() {
       </div>
 
       {/* Scroll indicator */}
-      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce">
+      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce z-10">
         <div className="w-[1px] h-16 bg-gradient-to-b from-transparent to-champagne" />
       </div>
     </section>

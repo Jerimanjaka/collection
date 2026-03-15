@@ -56,7 +56,10 @@ export async function getImagePath(slot: string): Promise<string | null> {
 
 export const SLOTS = {
   "logo": "Site Logo",
-  "hero-bg": "Hero Background",
+  "hero-slide-0": "Hero Slide 1",
+  "hero-slide-1": "Hero Slide 2",
+  "hero-slide-2": "Hero Slide 3",
+  "hero-slide-3": "Hero Slide 4",
   "collection-0": "Awards and Trophies",
   "collection-1": "Branded Accessories",
   "collection-2": "Custom Packaging",
