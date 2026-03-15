@@ -1,4 +1,4 @@
-import { put, del, list } from "@vercel/blob";
+import { put, del, list, getDownloadUrl } from "@vercel/blob";
 
 export type ImageManifest = Record<string, { filename: string; url: string; updatedAt: number }>;
 
@@ -16,7 +16,8 @@ export async function getManifest(): Promise<ImageManifest> {
   try {
     const blobs = await list({ prefix: MANIFEST_KEY });
     if (blobs.blobs.length > 0) {
-      const res = await fetch(blobs.blobs[0].url);
+      const downloadUrl = await getDownloadUrl(blobs.blobs[0].url);
+      const res = await fetch(downloadUrl);
       const data = await res.json();
       manifestCache = { data, timestamp: Date.now() };
       return data;
@@ -52,7 +53,16 @@ export async function getImagePath(slot: string): Promise<string | null> {
   const manifest = await getManifest();
   const entry = manifest[slot];
   if (!entry) return null;
-  return entry.url;
+  return getDownloadUrl(entry.url);
+}
+
+export async function getSignedManifest(): Promise<ImageManifest> {
+  const manifest = await getManifest();
+  const signed: ImageManifest = {};
+  for (const [slot, entry] of Object.entries(manifest)) {
+    signed[slot] = { ...entry, url: await getDownloadUrl(entry.url) };
+  }
+  return signed;
 }
 
 export const SLOTS = {

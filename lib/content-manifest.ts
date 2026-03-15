@@ -1,4 +1,4 @@
-import { put, del, list } from "@vercel/blob";
+import { put, del, list, getDownloadUrl } from "@vercel/blob";
 
 export type ContentManifest = Record<string, string>;
 
@@ -15,7 +15,8 @@ export async function getContent(): Promise<ContentManifest> {
   try {
     const blobs = await list({ prefix: CONTENT_KEY });
     if (blobs.blobs.length > 0) {
-      const res = await fetch(blobs.blobs[0].url);
+      const downloadUrl = await getDownloadUrl(blobs.blobs[0].url);
+      const res = await fetch(downloadUrl);
       const data = await res.json();
       contentCache = { data, timestamp: Date.now() };
       return data;

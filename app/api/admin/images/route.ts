@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { getManifest, SLOTS } from "@/lib/image-manifest";
+import { getSignedManifest, SLOTS } from "@/lib/image-manifest";
 
 const TOKEN_VALUE = "premiere-collection-admin";
 
@@ -11,6 +11,6 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const manifest = await getManifest();
+  const manifest = await getSignedManifest();
   return NextResponse.json({ manifest, slots: SLOTS });
 }
