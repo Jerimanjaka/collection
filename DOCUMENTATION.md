@@ -1,9 +1,11 @@
-               Documentation Technique & Guide d'Utilisation
+# Premiere Collection Ltd — Documentation Technique & Guide d'Utilisation
 
 > **Version** : 1.0.0
 > **Date** : Mars 2026
-> **Projet** : Site vitrine
+> **Projet** : Site vitrine & CMS — Premiere Collection Ltd
 > **Stack** : Next.js 16 / React 19 / Tailwind CSS 4 / Vercel
+
+---
 
 ## Table des Matieres
 
@@ -22,7 +24,11 @@
 
 ## 1. Introduction
 
-### 1.1 Objectifs du site
+### 1.1 Contexte
+
+Premiere Collection Ltd est une entreprise de sourcing et de production specialisee dans les produits de luxe personnalises : trophees, accessoires de marque, packaging sur mesure et bijoux. Le site web est son principal outil de communication et d'acquisition clients.
+
+### 1.2 Objectifs du site
 
 | Objectif | Description |
 |----------|-------------|
@@ -31,7 +37,7 @@
 | **Contact** | Permettre la prise de contact rapide |
 | **Autonomie** | Offrir un panneau d'administration permettant de modifier textes et images sans developpeur |
 
-### 1.2 Perimetre fonctionnel
+### 1.3 Perimetre fonctionnel
 
 - Site vitrine responsive (mobile, tablette, desktop)
 - Formulaire de demande de devis en 4 etapes
@@ -470,3 +476,11 @@ Chaque `git push` declenche un **redeploiement automatique**.
 | Analytics | Simple | Integrer Google Analytics ou Plausible |
 | Chat en direct | Simple | Integrer Crisp, Intercom ou Tawk.to |
 | Paiement en ligne | Complexe | Integrer Stripe pour les commandes directes |
+
+### 10.3 Support
+
+Pour toute question technique ou modification, contacter l'equipe de developpement.
+
+---
+
+*Document genere pour Premiere Collection Ltd — Mars 2026*
