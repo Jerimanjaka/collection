@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-const CONTACT_EMAIL = process.env.CONTACT_EMAIL || "contact@premierecollection.com";
+function getResend() {
+  const { Resend } = require("resend");
+  return new Resend(process.env.RESEND_API_KEY);
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,6 +21,9 @@ export async function POST(request: NextRequest) {
       console.log("Contact form submission (email not configured):", { name, company, email, message });
       return NextResponse.json({ success: true });
     }
+
+    const resend = getResend();
+    const CONTACT_EMAIL = process.env.CONTACT_EMAIL || "contact@premierecollection.com";
 
     await resend.emails.send({
       from: "Premiere Collection <noreply@premierecollection.com>",

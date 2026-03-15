@@ -36,6 +36,11 @@ yarn-error.log*
 # vercel
 .vercel
 
+# uploaded files (stored in Vercel Blob in production)
+/public/uploads/
+/public/images/manifest.json
+/public/content.json
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
