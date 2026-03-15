@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, type FormEvent, type DragEvent } from "react";
 import Image from "next/image";
 
-type ManifestEntry = { filename: string; updatedAt: number };
+type ManifestEntry = { filename: string; url: string; updatedAt: number };
 type Manifest = Record<string, ManifestEntry>;
 type Slots = Record<string, string>;
 
@@ -88,7 +88,7 @@ function UploadSlot({
     e.target.value = "";
   };
 
-  const imageSrc = entry ? `/images/${entry.filename}?v=${entry.updatedAt}` : null;
+  const imageSrc = entry?.url || null;
 
   return (
     <div className="bg-white-nacre border border-beige-dark p-4 hover:border-champagne-light transition-colors">
