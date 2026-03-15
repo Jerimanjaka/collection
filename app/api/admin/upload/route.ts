@@ -49,7 +49,9 @@ export async function POST(request: NextRequest) {
     await setManifest(manifest);
 
     return NextResponse.json({ success: true, url: blob.url, slot });
-  } catch {
-    return NextResponse.json({ error: "Upload failed" }, { status: 500 });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    console.error("Upload error:", message);
+    return NextResponse.json({ error: `Upload failed: ${message}` }, { status: 500 });
   }
 }
