@@ -11,6 +11,6 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const manifest = getManifest();
+  const manifest = await getManifest();
   return NextResponse.json({ manifest, slots: SLOTS });
 }

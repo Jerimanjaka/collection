@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { unlinkSync } from "fs";
-import path from "path";
+import { del } from "@vercel/blob";
 import { getManifest, setManifest, SLOTS } from "@/lib/image-manifest";
 
 const TOKEN_VALUE = "premiere-collection-admin";
@@ -20,21 +19,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid slot" }, { status: 400 });
     }
 
-    const manifest = getManifest();
+    const manifest = await getManifest();
     const entry = manifest[slot];
 
     if (entry) {
-      // Delete the file
-      const filePath = path.join(process.cwd(), "public/images", entry.filename);
       try {
-        unlinkSync(filePath);
+        await del(entry.url);
       } catch {
-        // File may already be deleted
+        // blob may already be deleted
       }
-
-      // Remove from manifest
       delete manifest[slot];
-      setManifest(manifest);
+      await setManifest(manifest);
     }
 
     return NextResponse.json({ success: true, slot });

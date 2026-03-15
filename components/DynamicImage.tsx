@@ -8,13 +8,13 @@ interface DynamicImageProps {
   placeholder?: React.ReactNode;
 }
 
-export default function DynamicImage({
+export default async function DynamicImage({
   slot,
   alt,
   className = "object-cover",
   placeholder,
 }: DynamicImageProps) {
-  const imagePath = getImagePath(slot);
+  const imagePath = await getImagePath(slot);
 
   if (!imagePath) {
     return placeholder || null;

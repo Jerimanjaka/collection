@@ -18,8 +18,12 @@ const personalizationTypes = [
 
 export default function QuoteForm() {
   const [submitted, setSubmitted] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState("");
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [packagingRequired, setPackagingRequired] = useState<string>("not_sure");
+  const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
 
   const toggleType = (type: string) => {
     setSelectedTypes((prev) =>
@@ -27,9 +31,48 @@ export default function QuoteForm() {
     );
   };
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    setError("");
+    setSending(true);
+
+    const form = e.target as HTMLFormElement;
+    const formData = new FormData(form);
+
+    try {
+      const res = await fetch("/api/quote", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fullName: formData.get("fullName"),
+          companyName: formData.get("companyName"),
+          email: formData.get("email"),
+          phone: formData.get("phone"),
+          country: formData.get("country"),
+          productCategory: formData.get("productCategory"),
+          productReference: formData.get("productReference"),
+          estimatedQuantity: formData.get("estimatedQuantity"),
+          quantityRange: formData.get("quantityRange"),
+          personalizationTypes: selectedTypes,
+          brandingFiles: uploadedFiles,
+          projectDescription: formData.get("projectDescription"),
+          packagingRequired,
+          shippingLocation: formData.get("shippingLocation"),
+          additionalNotes: formData.get("additionalNotes"),
+        }),
+      });
+
+      if (res.ok) {
+        setSubmitted(true);
+      } else {
+        const data = await res.json();
+        setError(data.error || "Failed to send request");
+      }
+    } catch {
+      setError("Network error. Please try again.");
+    } finally {
+      setSending(false);
+    }
   };
 
   if (submitted) {
@@ -78,6 +121,7 @@ export default function QuoteForm() {
               </label>
               <input
                 type="text"
+                name="fullName"
                 required
                 className="w-full px-4 py-3 bg-beige border border-beige-dark font-[var(--font-inter)] text-sm focus:outline-none focus:border-champagne transition-colors"
               />
@@ -88,6 +132,7 @@ export default function QuoteForm() {
               </label>
               <input
                 type="text"
+                name="companyName"
                 className="w-full px-4 py-3 bg-beige border border-beige-dark font-[var(--font-inter)] text-sm focus:outline-none focus:border-champagne transition-colors"
               />
             </div>
@@ -98,6 +143,7 @@ export default function QuoteForm() {
             </label>
             <input
               type="email"
+              name="email"
               required
               className="w-full px-4 py-3 bg-beige border border-beige-dark font-[var(--font-inter)] text-sm focus:outline-none focus:border-champagne transition-colors"
             />
@@ -109,6 +155,7 @@ export default function QuoteForm() {
               </label>
               <input
                 type="tel"
+                name="phone"
                 className="w-full px-4 py-3 bg-beige border border-beige-dark font-[var(--font-inter)] text-sm focus:outline-none focus:border-champagne transition-colors"
               />
             </div>
@@ -118,6 +165,7 @@ export default function QuoteForm() {
               </label>
               <input
                 type="text"
+                name="country"
                 className="w-full px-4 py-3 bg-beige border border-beige-dark font-[var(--font-inter)] text-sm focus:outline-none focus:border-champagne transition-colors"
               />
             </div>
@@ -144,6 +192,7 @@ export default function QuoteForm() {
               Product Category *
             </label>
             <select
+              name="productCategory"
               required
               className="w-full px-4 py-3 bg-beige border border-beige-dark font-[var(--font-inter)] text-sm focus:outline-none focus:border-champagne transition-colors appearance-none"
             >
@@ -161,6 +210,7 @@ export default function QuoteForm() {
             </label>
             <input
               type="text"
+              name="productReference"
               className="w-full px-4 py-3 bg-beige border border-beige-dark font-[var(--font-inter)] text-sm focus:outline-none focus:border-champagne transition-colors"
               placeholder="e.g. AT-001, BA-001..."
             />
@@ -172,6 +222,7 @@ export default function QuoteForm() {
               </label>
               <input
                 type="number"
+                name="estimatedQuantity"
                 required
                 min="1"
                 className="w-full px-4 py-3 bg-beige border border-beige-dark font-[var(--font-inter)] text-sm focus:outline-none focus:border-champagne transition-colors"
@@ -181,7 +232,7 @@ export default function QuoteForm() {
               <label className="font-[var(--font-inter)] text-xs tracking-wider uppercase text-grey mb-2 block">
                 Select Quantity
               </label>
-              <select className="w-full px-4 py-3 bg-beige border border-beige-dark font-[var(--font-inter)] text-sm focus:outline-none focus:border-champagne transition-colors appearance-none">
+              <select name="quantityRange" className="w-full px-4 py-3 bg-beige border border-beige-dark font-[var(--font-inter)] text-sm focus:outline-none focus:border-champagne transition-colors appearance-none">
                 <option value="">Select range</option>
                 <option value="1-50">1 - 50</option>
                 <option value="50-200">50 - 200</option>
@@ -233,17 +284,79 @@ export default function QuoteForm() {
             <label className="font-[var(--font-inter)] text-xs tracking-wider uppercase text-grey mb-2 block">
               Branding Elements
             </label>
-            <div className="w-full px-4 py-6 bg-beige border border-dashed border-beige-dark text-center cursor-pointer hover:border-champagne transition-colors">
-              <span className="font-[var(--font-inter)] text-xs text-grey">
-                Click to upload: Logo, Artwork, Design files
-              </span>
-            </div>
+            <label
+              className={`block w-full px-4 py-6 bg-beige border border-dashed text-center cursor-pointer transition-colors ${
+                uploading ? "border-champagne bg-champagne/5" : "border-beige-dark hover:border-champagne"
+              }`}
+            >
+              {uploading ? (
+                <span className="font-[var(--font-inter)] text-xs text-champagne">
+                  Uploading...
+                </span>
+              ) : (
+                <>
+                  <svg className="w-8 h-8 text-grey/30 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                  </svg>
+                  <span className="font-[var(--font-inter)] text-xs text-grey">
+                    Click to upload: Logo, Artwork, Design files (PNG, JPG, PDF, AI — max 15MB)
+                  </span>
+                </>
+              )}
+              <input
+                type="file"
+                multiple
+                accept="image/*,.pdf,.ai,.eps"
+                className="hidden"
+                onChange={async (e) => {
+                  const files = e.target.files;
+                  if (!files?.length) return;
+                  setUploading(true);
+                  const formData = new FormData();
+                  Array.from(files).forEach((f) => formData.append("files", f));
+                  try {
+                    const res = await fetch("/api/quote/upload", {
+                      method: "POST",
+                      body: formData,
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                      setUploadedFiles((prev) => [...prev, ...data.files]);
+                    }
+                  } catch {
+                    // silent fail
+                  } finally {
+                    setUploading(false);
+                    e.target.value = "";
+                  }
+                }}
+              />
+            </label>
+            {uploadedFiles.length > 0 && (
+              <div className="mt-3 space-y-2">
+                {uploadedFiles.map((file, i) => (
+                  <div key={i} className="flex items-center justify-between bg-beige px-3 py-2">
+                    <span className="font-[var(--font-inter)] text-[11px] text-foreground/70 truncate mr-2">
+                      {file.replace(/^\d+_/, "")}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setUploadedFiles((prev) => prev.filter((_, idx) => idx !== i))}
+                      className="font-[var(--font-inter)] text-[10px] text-red-400 hover:text-red-500 shrink-0"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
           <div>
             <label className="font-[var(--font-inter)] text-xs tracking-wider uppercase text-grey mb-2 block">
               Description of Your Project
             </label>
             <textarea
+              name="projectDescription"
               rows={4}
               className="w-full px-4 py-3 bg-beige border border-beige-dark font-[var(--font-inter)] text-sm focus:outline-none focus:border-champagne transition-colors resize-none"
               placeholder="Describe your requirements..."
@@ -297,6 +410,7 @@ export default function QuoteForm() {
             </label>
             <input
               type="text"
+              name="shippingLocation"
               className="w-full px-4 py-3 bg-beige border border-beige-dark font-[var(--font-inter)] text-sm focus:outline-none focus:border-champagne transition-colors"
               placeholder="City, Country"
             />
@@ -306,6 +420,7 @@ export default function QuoteForm() {
               Additional Notes
             </label>
             <textarea
+              name="additionalNotes"
               rows={4}
               className="w-full px-4 py-3 bg-beige border border-beige-dark font-[var(--font-inter)] text-sm focus:outline-none focus:border-champagne transition-colors resize-none"
             />
@@ -313,12 +428,20 @@ export default function QuoteForm() {
         </div>
       </div>
 
+      {/* Error */}
+      {error && (
+        <p className="font-[var(--font-inter)] text-xs text-red-500 mb-4">
+          {error}
+        </p>
+      )}
+
       {/* Submit */}
       <button
         type="submit"
-        className="w-full px-8 py-4 bg-champagne text-white font-[var(--font-inter)] text-sm tracking-widest uppercase hover:bg-champagne-dark transition-colors duration-300"
+        disabled={sending}
+        className="w-full px-8 py-4 bg-champagne text-white font-[var(--font-inter)] text-sm tracking-widest uppercase hover:bg-champagne-dark transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        Request My Quote
+        {sending ? "Sending..." : "Request My Quote"}
       </button>
     </form>
   );

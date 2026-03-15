@@ -9,6 +9,11 @@ type Slots = Record<string, string>;
 
 const sections = [
   {
+    title: "Logo",
+    description: "Site logo displayed in navbar and footer (PNG with transparent background recommended)",
+    slots: ["logo"],
+  },
+  {
     title: "Hero",
     description: "Background image for the hero section",
     slots: ["hero-bg"],
@@ -193,22 +198,139 @@ function UploadSlot({
   );
 }
 
+type ContentFields = Record<string, { label: string; fields: { key: string; label: string; type: "text" | "textarea"; default: string }[] }>;
+type ContentData = Record<string, string>;
+
+function ContentEditor({
+  contentFields,
+  contentData,
+  onUpdate,
+}: {
+  contentFields: ContentFields;
+  contentData: ContentData;
+  onUpdate: () => void;
+}) {
+  const [saving, setSaving] = useState<string | null>(null);
+  const [localValues, setLocalValues] = useState<ContentData>({});
+
+  const getValue = (key: string, defaultVal: string) => {
+    if (key in localValues) return localValues[key];
+    return contentData[key] || defaultVal;
+  };
+
+  const saveField = async (key: string, value: string, defaultVal: string) => {
+    setSaving(key);
+    const saveValue = value === defaultVal ? "" : value;
+    try {
+      await fetch("/api/admin/content", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key, value: saveValue }),
+      });
+      onUpdate();
+    } catch {
+      // silent
+    } finally {
+      setSaving(null);
+    }
+  };
+
+  return (
+    <div className="space-y-12">
+      {Object.entries(contentFields).map(([sectionKey, section]) => (
+        <div key={sectionKey}>
+          <div className="flex items-center gap-4 mb-2">
+            <span className="block w-8 h-[1px] bg-champagne" />
+            <h2 className="font-[var(--font-cormorant)] text-2xl">{section.label}</h2>
+          </div>
+          <div className="space-y-4 mt-6">
+            {section.fields.map((field) => {
+              const currentValue = getValue(field.key, field.default);
+              const isModified = contentData[field.key] && contentData[field.key] !== field.default;
+              return (
+                <div key={field.key} className="bg-white-nacre border border-beige-dark p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="font-[var(--font-inter)] text-xs tracking-wider uppercase text-grey">
+                      {field.label}
+                    </label>
+                    <div className="flex items-center gap-2">
+                      {isModified && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setLocalValues((prev) => ({ ...prev, [field.key]: field.default }));
+                            saveField(field.key, field.default, field.default);
+                          }}
+                          className="font-[var(--font-inter)] text-[10px] text-grey hover:text-champagne transition-colors"
+                        >
+                          Reset
+                        </button>
+                      )}
+                      {saving === field.key && (
+                        <span className="font-[var(--font-inter)] text-[10px] text-champagne">
+                          Saving...
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  {field.type === "textarea" ? (
+                    <textarea
+                      value={currentValue}
+                      onChange={(e) =>
+                        setLocalValues((prev) => ({ ...prev, [field.key]: e.target.value }))
+                      }
+                      onBlur={() => saveField(field.key, currentValue, field.default)}
+                      rows={3}
+                      className="w-full px-3 py-2 bg-beige border border-beige-dark font-[var(--font-inter)] text-sm focus:outline-none focus:border-champagne transition-colors resize-none"
+                    />
+                  ) : (
+                    <input
+                      type="text"
+                      value={currentValue}
+                      onChange={(e) =>
+                        setLocalValues((prev) => ({ ...prev, [field.key]: e.target.value }))
+                      }
+                      onBlur={() => saveField(field.key, currentValue, field.default)}
+                      className="w-full px-3 py-2 bg-beige border border-beige-dark font-[var(--font-inter)] text-sm focus:outline-none focus:border-champagne transition-colors"
+                    />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function AdminPage() {
   const [authenticated, setAuthenticated] = useState(false);
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
+  const [activeTab, setActiveTab] = useState<"images" | "content">("images");
   const [manifest, setManifest] = useState<Manifest>({});
   const [slots, setSlots] = useState<Slots>({});
+  const [contentFields, setContentFields] = useState<ContentFields>({});
+  const [contentData, setContentData] = useState<ContentData>({});
   const [loading, setLoading] = useState(true);
 
-  const fetchManifest = useCallback(async () => {
+  const fetchData = useCallback(async () => {
     try {
-      const res = await fetch("/api/admin/images");
-      if (res.ok) {
-        const data = await res.json();
-        setManifest(data.manifest);
-        setSlots(data.slots);
+      const [imgRes, contentRes] = await Promise.all([
+        fetch("/api/admin/images"),
+        fetch("/api/admin/content"),
+      ]);
+      if (imgRes.ok) {
+        const imgData = await imgRes.json();
+        setManifest(imgData.manifest);
+        setSlots(imgData.slots);
         setAuthenticated(true);
+      }
+      if (contentRes.ok) {
+        const cData = await contentRes.json();
+        setContentFields(cData.fields);
+        setContentData(cData.content);
       }
     } catch {
       // not authenticated
@@ -217,9 +339,11 @@ export default function AdminPage() {
     }
   }, []);
 
+  const fetchManifest = fetchData;
+
   useEffect(() => {
-    fetchManifest();
-  }, [fetchManifest]);
+    fetchData();
+  }, [fetchData]);
 
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
@@ -232,7 +356,7 @@ export default function AdminPage() {
       });
       if (res.ok) {
         setAuthenticated(true);
-        fetchManifest();
+        fetchData();
       } else {
         setLoginError("Incorrect password");
       }
@@ -303,10 +427,10 @@ export default function AdminPage() {
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div>
             <h1 className="font-[var(--font-cormorant)] text-3xl font-light">
-              Image <em className="text-champagne">Manager</em>
+              Admin <em className="text-champagne">Panel</em>
             </h1>
             <p className="font-[var(--font-inter)] text-xs text-grey mt-1">
-              {uploadedCount}/{totalCount} images uploaded
+              Premiere Collection Ltd
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -330,40 +454,76 @@ export default function AdminPage() {
         </div>
       </header>
 
-      {/* Content */}
+      {/* Tabs */}
+      <div className="border-b border-beige-dark">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex gap-0">
+          <button
+            onClick={() => setActiveTab("images")}
+            className={`px-6 py-4 font-[var(--font-inter)] text-xs tracking-wider uppercase transition-colors border-b-2 ${
+              activeTab === "images"
+                ? "border-champagne text-champagne"
+                : "border-transparent text-grey hover:text-foreground"
+            }`}
+          >
+            Images ({uploadedCount}/{totalCount})
+          </button>
+          <button
+            onClick={() => setActiveTab("content")}
+            className={`px-6 py-4 font-[var(--font-inter)] text-xs tracking-wider uppercase transition-colors border-b-2 ${
+              activeTab === "content"
+                ? "border-champagne text-champagne"
+                : "border-transparent text-grey hover:text-foreground"
+            }`}
+          >
+            Content
+          </button>
+        </div>
+      </div>
+
+      {/* Tab Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        {sections.map((section) => (
-          <div key={section.title} className="mb-14">
-            <div className="flex items-center gap-4 mb-2">
-              <span className="block w-8 h-[1px] bg-champagne" />
-              <h2 className="font-[var(--font-cormorant)] text-2xl">
-                {section.title}
-              </h2>
-            </div>
-            <p className="font-[var(--font-inter)] text-xs text-grey mb-6 ml-12">
-              {section.description}
-            </p>
-            <div
-              className={`grid gap-6 ${
-                section.slots.length === 1
-                  ? "grid-cols-1 max-w-md"
-                  : section.slots.length === 3
-                  ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
-                  : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
-              }`}
-            >
-              {section.slots.map((slot) => (
-                <UploadSlot
-                  key={slot}
-                  slot={slot}
-                  label={slots[slot] || slot}
-                  entry={manifest[slot]}
-                  onUploadSuccess={fetchManifest}
-                />
-              ))}
-            </div>
-          </div>
-        ))}
+        {activeTab === "images" ? (
+          <>
+            {sections.map((section) => (
+              <div key={section.title} className="mb-14">
+                <div className="flex items-center gap-4 mb-2">
+                  <span className="block w-8 h-[1px] bg-champagne" />
+                  <h2 className="font-[var(--font-cormorant)] text-2xl">
+                    {section.title}
+                  </h2>
+                </div>
+                <p className="font-[var(--font-inter)] text-xs text-grey mb-6 ml-12">
+                  {section.description}
+                </p>
+                <div
+                  className={`grid gap-6 ${
+                    section.slots.length === 1
+                      ? "grid-cols-1 max-w-md"
+                      : section.slots.length === 3
+                      ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+                      : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
+                  }`}
+                >
+                  {section.slots.map((slot) => (
+                    <UploadSlot
+                      key={slot}
+                      slot={slot}
+                      label={slots[slot] || slot}
+                      entry={manifest[slot]}
+                      onUploadSuccess={fetchData}
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </>
+        ) : (
+          <ContentEditor
+            contentFields={contentFields}
+            contentData={contentData}
+            onUpdate={fetchData}
+          />
+        )}
       </div>
     </div>
   );

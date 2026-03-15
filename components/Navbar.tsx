@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useLogoPath } from "@/hooks/useLogo";
 
 const navLinks = [
   { label: "Our Collection", href: "/#collection" },
@@ -15,6 +16,7 @@ const navLinks = [
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const logoPath = useLogoPath();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 60);
@@ -38,18 +40,21 @@ export default function Navbar() {
         >
           {/* Logo */}
           <Link href="/" className="flex items-center shrink-0">
-            <Image
-              src="/images/logo.png"
-              alt="Premiere Collection Ltd"
-              width={700}
-              height={250}
-              className={`w-auto mix-blend-multiply transition-all duration-500 ${
-                scrolled
-                  ? "h-12 sm:h-14 max-w-[200px] sm:max-w-[280px]"
-                  : "h-12 sm:h-14 lg:h-32 max-w-[260px] sm:max-w-[380px] lg:max-w-[500px]"
-              }`}
-              priority
-            />
+            {logoPath && (
+              <Image
+                src={logoPath}
+                alt="Premiere Collection Ltd"
+                width={700}
+                height={250}
+                className={`w-auto mix-blend-multiply transition-all duration-500 ${
+                  scrolled
+                    ? "h-12 sm:h-14 max-w-[200px] sm:max-w-[280px]"
+                    : "h-12 sm:h-14 lg:h-32 max-w-[260px] sm:max-w-[380px] lg:max-w-[500px]"
+                }`}
+                priority
+                unoptimized
+              />
+            )}
           </Link>
 
           {/* Desktop nav */}

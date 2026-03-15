@@ -1,33 +1,61 @@
-import fs from "fs";
-import path from "path";
+import { put, del, list } from "@vercel/blob";
 
-export type ImageManifest = Record<string, { filename: string; updatedAt: number }>;
+export type ImageManifest = Record<string, { filename: string; url: string; updatedAt: number }>;
 
-const MANIFEST_PATH = path.join(process.cwd(), "public/images/manifest.json");
+const MANIFEST_KEY = "manifest/images.json";
 
-export function getManifest(): ImageManifest {
-  try {
-    // Clear require cache to always read fresh data after uploads
-    delete require.cache[MANIFEST_PATH];
-    const data = fs.readFileSync(MANIFEST_PATH, "utf-8");
-    return JSON.parse(data);
-  } catch {
-    return {};
+// Cache to avoid fetching manifest on every call during a single request
+let manifestCache: { data: ImageManifest; timestamp: number } | null = null;
+const CACHE_TTL = 2000; // 2s
+
+export async function getManifest(): Promise<ImageManifest> {
+  if (manifestCache && Date.now() - manifestCache.timestamp < CACHE_TTL) {
+    return manifestCache.data;
   }
+
+  try {
+    const blobs = await list({ prefix: MANIFEST_KEY });
+    if (blobs.blobs.length > 0) {
+      const res = await fetch(blobs.blobs[0].url);
+      const data = await res.json();
+      manifestCache = { data, timestamp: Date.now() };
+      return data;
+    }
+  } catch {
+    // fallback
+  }
+  return {};
 }
 
-export function setManifest(manifest: ImageManifest): void {
-  fs.writeFileSync(MANIFEST_PATH, JSON.stringify(manifest, null, 2));
+export async function setManifest(manifest: ImageManifest): Promise<void> {
+  // Delete old manifest
+  try {
+    const blobs = await list({ prefix: MANIFEST_KEY });
+    for (const blob of blobs.blobs) {
+      await del(blob.url);
+    }
+  } catch {
+    // ignore
+  }
+
+  await put(MANIFEST_KEY, JSON.stringify(manifest), {
+    access: "public",
+    contentType: "application/json",
+    addRandomSuffix: false,
+  });
+
+  manifestCache = { data: manifest, timestamp: Date.now() };
 }
 
-export function getImagePath(slot: string): string | null {
-  const manifest = getManifest();
+export async function getImagePath(slot: string): Promise<string | null> {
+  const manifest = await getManifest();
   const entry = manifest[slot];
   if (!entry) return null;
-  return `/images/${entry.filename}?v=${entry.updatedAt}`;
+  return entry.url;
 }
 
 export const SLOTS = {
+  "logo": "Site Logo",
   "hero-bg": "Hero Background",
   "collection-0": "Awards and Trophies",
   "collection-1": "Branded Accessories",

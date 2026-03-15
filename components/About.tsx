@@ -1,7 +1,8 @@
 import Link from "next/link";
 import DynamicImage from "@/components/DynamicImage";
+import Text from "@/components/Text";
 
-export default function About() {
+export default async function About() {
   return (
     <section id="about" className="py-24 sm:py-32 bg-white-nacre">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -31,7 +32,7 @@ export default function About() {
             <div className="flex items-center gap-4 mb-4">
               <span className="block w-10 h-[1px] bg-champagne" />
               <span className="font-[var(--font-inter)] text-xs tracking-[0.3em] uppercase text-champagne">
-                Our Story
+                <Text k="about.subtitle" fallback="Our Story" />
               </span>
             </div>
 
@@ -42,23 +43,18 @@ export default function About() {
             </h2>
 
             <p className="font-[var(--font-inter)] text-sm text-grey leading-relaxed mb-8">
-              Founded over 15 years ago, Premiere Collection Ltd was born from a
-              vision: making the world&apos;s finest production resources accessible to
-              luxury houses, without compromise on quality or ethics.
+              <Text k="about.paragraph1" fallback="Founded over 15 years ago, Premiere Collection Ltd was born from a vision: making the world's finest production resources accessible to luxury houses, without compromise on quality or ethics." />
             </p>
 
             {/* Quote */}
             <div className="border-l-2 border-champagne pl-6 mb-8">
               <p className="font-[var(--font-cormorant)] text-xl italic text-foreground/80 leading-relaxed">
-                &ldquo;Every product we deliver carries the imprint of
-                irreplaceable human craftsmanship.&rdquo;
+                &ldquo;<Text k="about.quote" fallback="Every product we deliver carries the imprint of irreplaceable human craftsmanship." />&rdquo;
               </p>
             </div>
 
             <p className="font-[var(--font-inter)] text-sm text-grey leading-relaxed mb-10">
-              Our team of specialists travels the world to identify, qualify, and
-              build lasting partnerships with the most exacting workshops — from
-              Southeast Asia to artisanal Europe.
+              <Text k="about.paragraph2" fallback="Our team of specialists travels the world to identify, qualify, and build lasting partnerships with the most exacting workshops — from Southeast Asia to artisanal Europe." />
             </p>
 
             {/* CTAs */}

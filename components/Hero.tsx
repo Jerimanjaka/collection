@@ -1,6 +1,7 @@
 import DynamicImage from "@/components/DynamicImage";
+import Text from "@/components/Text";
 
-export default function Hero() {
+export default async function Hero() {
   return (
     <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-b from-white-nacre to-beige pt-40 lg:pt-48 overflow-hidden">
       {/* Background hero image */}
@@ -32,24 +33,25 @@ export default function Hero() {
         <div className="flex items-center justify-center gap-4 mb-8 animate-fade-in-up">
           <span className="block w-12 h-[1px] bg-champagne" />
           <span className="font-[var(--font-inter)] text-xs tracking-[0.3em] uppercase text-champagne">
-            Sourcing & Production
+            <Text k="hero.subtitle" fallback="Sourcing & Production" />
           </span>
           <span className="block w-12 h-[1px] bg-champagne" />
         </div>
 
         {/* Main title */}
         <h1 className="font-[var(--font-cormorant)] text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-light leading-tight mb-6 animate-fade-in-up animate-delay-200">
-          From Rare Sourcing
+          <Text k="hero.title1" fallback="From Rare Sourcing" />
           <br />
-          <span className="italic text-champagne">to Masterful</span>
+          <span className="italic text-champagne">
+            <Text k="hero.title2" fallback="to Masterful" />
+          </span>
           <br />
-          Production
+          <Text k="hero.title3" fallback="Production" />
         </h1>
 
         {/* Description */}
         <p className="font-[var(--font-inter)] text-base sm:text-lg text-grey max-w-2xl mx-auto mb-12 animate-fade-in-up animate-delay-400 leading-relaxed">
-          Premiere Collection Ltd partners with the world&apos;s finest artisans to
-          deliver bespoke luxury products — from concept to creation.
+          <Text k="hero.description" fallback="Premiere Collection Ltd partners with the world's finest artisans to deliver bespoke luxury products — from concept to creation." />
         </p>
 
         {/* CTA */}
@@ -58,7 +60,7 @@ export default function Hero() {
             href="#collection"
             className="inline-block px-10 py-4 border-2 border-champagne text-champagne font-[var(--font-inter)] text-sm tracking-widest uppercase hover:bg-champagne hover:text-white transition-all duration-500"
           >
-            Explore Our Collection
+            <Text k="hero.cta" fallback="Explore Our Collection" />
           </a>
         </div>
       </div>
