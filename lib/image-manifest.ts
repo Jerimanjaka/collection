@@ -39,7 +39,7 @@ export async function setManifest(manifest: ImageManifest): Promise<void> {
   }
 
   await put(MANIFEST_KEY, JSON.stringify(manifest), {
-    access: "public",
+    access: "private",
     contentType: "application/json",
     addRandomSuffix: false,
   });

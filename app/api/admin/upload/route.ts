@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     const filename = `${slot}.${ext}`;
 
     const blob = await put(`images/${filename}`, file, {
-      access: "public",
+      access: "private",
       contentType: file.type,
       addRandomSuffix: false,
     });

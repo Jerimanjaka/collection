@@ -37,7 +37,7 @@ export async function setContent(content: ContentManifest): Promise<void> {
   }
 
   await put(CONTENT_KEY, JSON.stringify(content), {
-    access: "public",
+    access: "private",
     contentType: "application/json",
     addRandomSuffix: false,
   });

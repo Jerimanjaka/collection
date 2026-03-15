@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
       const filename = `${timestamp}_${safeName}`;
 
       await put(`uploads/${filename}`, file, {
-        access: "public",
+        access: "private",
         contentType: file.type,
       });
 
