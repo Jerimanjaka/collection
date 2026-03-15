@@ -40,6 +40,7 @@ export async function setContent(content: ContentManifest): Promise<void> {
     access: "private",
     contentType: "application/json",
     addRandomSuffix: false,
+    allowOverwrite: true,
   });
 
   contentCache = { data: content, timestamp: Date.now() };

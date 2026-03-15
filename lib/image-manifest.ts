@@ -42,6 +42,7 @@ export async function setManifest(manifest: ImageManifest): Promise<void> {
     access: "private",
     contentType: "application/json",
     addRandomSuffix: false,
+    allowOverwrite: true,
   });
 
   manifestCache = { data: manifest, timestamp: Date.now() };

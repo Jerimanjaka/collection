@@ -42,6 +42,7 @@ export async function POST(request: NextRequest) {
       access: "private",
       contentType: file.type,
       addRandomSuffix: false,
+      allowOverwrite: true,
     });
 
     const manifest = await getManifest();
